@@ -96,6 +96,8 @@ def show_landing_page():
         **English:** Full features including **Heart Rate, VO2 Max Trends, Sleep Analysis, and Training Load (TSB/ACWR)**.
         
         **繁體中文：** 完整功能，包括**心率、VO2 Max 趨勢、睡眠分析及訓練負荷 (TSB/ACWR)**。
+        
+        GitHub: https://github.com/kwanshun/Apple-Watch-Running-Health
         """)
 
     st.markdown("""
