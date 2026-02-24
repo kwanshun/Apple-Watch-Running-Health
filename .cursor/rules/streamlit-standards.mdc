@@ -1,0 +1,47 @@
+---
+description: Standards for Streamlit UI development and code generation based on official documentation.
+globs: **/*.py
+alwaysApply: true
+---
+
+# Streamlit Development Standards
+
+Follow these patterns for consistent, high-quality Streamlit applications as defined in the [official documentation](https://docs.streamlit.io/).
+
+## Layout & Structure
+- **Multi-page Apps:** Use `st.navigation` and `st.Page` for modern sidebar navigation.
+- **Containers:** Group related elements using `st.container` or `st.group`.
+- **Columns & Tabs:** Use `st.columns` for side-by-side layouts and `st.tabs` to organize content without cluttering.
+- **Sidebar:** Keep global controls and navigation in `st.sidebar`.
+
+## Performance (Caching)
+- Use `@st.cache_data` for functions that return data (e.g., CSV parsing, API calls).
+- Use `@st.cache_resource` for global objects (e.g., database connections, ML models).
+
+## UI Components
+- **Data Display:** Prefer `st.dataframe` for interactive tables and `st.metric` for key KPIs.
+- **Charts:** Use `st.plotly_chart(fig, width='stretch')` for interactive visualizations.
+- **Feedback:** Use `st.spinner` for loading states and `st.toast` for brief notifications.
+- **Input Widgets:** Use `key` parameters for widgets to maintain state across reruns if necessary.
+
+## Example Pattern
+```python
+import streamlit as st
+import pandas as pd
+
+@st.cache_data
+def load_data(path):
+    return pd.read_csv(path)
+
+def main():
+    st.title("Dashboard")
+    
+    data = load_data("data.csv")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Total Rows", len(data))
+    
+    st.tabs(["View Data", "Analysis"])
+    # ...
+```

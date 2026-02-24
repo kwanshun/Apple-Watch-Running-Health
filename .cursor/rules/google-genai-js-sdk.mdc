@@ -1,0 +1,42 @@
+---
+description: Gemini API Coding Guidelines for JavaScript/TypeScript using the @google/genai SDK
+globs: **/*.{js,ts,jsx,tsx}
+alwaysApply: false
+---
+
+# Gemini API Coding Guidelines (@google/genai)
+
+Always use the **Google Gen AI SDK** (`@google/genai`). Do not use deprecated libraries like `@google/generative-ai`.
+
+## Golden Rule: Use the Correct SDK
+- **Package:** `@google/genai`
+- **Import:** `import { GoogleGenAI } from '@google/genai'`
+- **Initialization:** `const ai = new GoogleGenAI({ apiKey: '...' })`
+
+## Models
+- **General:** `gemini-3-flash-preview`
+- **Complex/Coding:** `gemini-3-pro-preview`
+- **Low Latency:** `gemini-2.5-flash-lite`
+
+## Common Patterns
+
+### Text Generation
+```typescript
+const response = await ai.models.generateContent({
+  model: 'gemini-3-flash-preview',
+  contents: 'Prompt text',
+});
+console.log(response.text);
+```
+
+### Thinking (Reasoning)
+- **Gemini 3:** Use `thinkingConfig` with `thinkingLevel` (`MINIMAL`, `LOW`, `MEDIUM`, `HIGH`).
+- **Gemini 2.5:** Use `thinkingBudget` (minimum 128).
+
+### Structured Output (JSON)
+Use `responseMimeType: "application/json"` and `responseSchema` in the config.
+
+## Prohibited
+- Do not use `gemini-1.5-flash` or `gemini-1.5-pro`.
+- Avoid `maxOutputTokens`, `topP`, `topK` unless explicitly requested.
+- Never use `require('@google/generative-ai')`.

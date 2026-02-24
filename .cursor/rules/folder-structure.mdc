@@ -1,0 +1,23 @@
+---
+description: Folder structure and organization guidelines for the Apple Watch Running & Health codebase.
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Folder Structure Guidelines
+
+Follow this directory structure to maintain a modular and scalable codebase:
+
+- `parser/`: Modular logic for unzipping `export.zip` and parsing `export.xml`.
+- `analytics/`: Implementation of core algorithms (ACWR, EF, TSB, Sleep Analysis).
+- `ui/`: Reusable Streamlit UI components and dashboard layout functions.
+- `public/`: Static assets such as images and branding materials used in the UI.
+- `utils/`: Common helper functions (date formatting, unit conversions, data validation).
+- `data/`: (Optional) Local development samples or processed CSV caches (not for permanent health data).
+- `tests/`: Unit and integration tests for parsing and analytics logic.
+- `main.py`: The entry point for the Streamlit application.
+
+## Principles
+- **Separation of Concerns:** Keep parsing, analysis, and UI logic in their respective directories.
+- **Modularity:** Each file should have a single, clear responsibility.
+- **Naming:** Use `snake_case` for all Python files and directories.

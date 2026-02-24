@@ -1,0 +1,39 @@
+---
+description: Always generate docstrings for Python functions
+globs: **/*.py
+alwaysApply: false
+---
+
+# Python Docstring Conventions
+
+All Python functions and methods must include a docstring following PEP 257 standards.
+
+## Requirements
+
+- Use triple double quotes (`"""`).
+- Summarize the function's purpose in the first line.
+- Include sections for Parameters (`Args:`) and Return values (`Returns:`) if applicable.
+
+## Examples
+
+### ✅ GOOD
+```python
+def calculate_pace(distance_km: float, time_minutes: float) -> float:
+    """
+    Calculates the running pace in minutes per kilometer.
+
+    Args:
+        distance_km: The distance covered in kilometers.
+        time_minutes: The total time taken in minutes.
+
+    Returns:
+        The pace in minutes per kilometer.
+    """
+    return time_minutes / distance_km
+```
+
+### ❌ BAD
+```python
+def calculate_pace(distance_km, time_minutes):
+    return time_minutes / distance_km
+```

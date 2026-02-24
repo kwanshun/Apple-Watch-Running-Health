@@ -1,0 +1,35 @@
+---
+description: Global project rules and core directives for the Apple Watch Running & Health project.
+globs: **
+alwaysApply: true
+---
+
+# Global Project Rules
+
+These rules apply to the entire Apple Watch Running & Health Trend Analysis project.
+
+## Core Directives
+1. **Context is King:** Always refer to `AGENTS.md` for high-level architectural decisions and the technical stack.
+2. **Documentation First:** Define feature specifications in markdown before requesting implementation.
+3. **Privacy First:** Never implement logic that permanently stores HealthKit data on a server.
+
+## AI Agent Instructions
+- **Library Documentation:** Always use `context7` tools (e.g., `resolve-library-id`, `query-docs`) for code generation, setup steps, or library documentation (Streamlit, Plotly, Pandas, etc.).
+- **Code Style:** Adhere to the standards defined in `.cursor/rules/*.mdc` (e.g., Python docstrings, naming conventions).
+- **Conciseness:** Be brief and direct in responses. Avoid unnecessary filler language.
+- **Graph Documentation Alignment:** For any modification related to analytics or visualizations, review the corresponding documentation in `graph_doc/`. If proposed changes conflict with the documentation, flag the discrepancy and ask for clarification rather than assuming or guessing (refer to `doc/PRD.md`).
+
+## Lessons Learnt
+- **Pandas Merge Safety:** When using `pd.merge_asof` (e.g., aligning XML dynamics with GPX data), ensure BOTH indices are converted to the same timezone-aware type (strictly `UTC`) using `pd.to_datetime(df.index, utc=True)`. Mixing different timezone offsets or naive/aware timestamps will trigger a `MergeError`.
+- **Plotly Unified Hover:** For `hovermode="x unified"` to work reliably across multiple subplots, use a rounded relative time column (e.g., `rel_min` rounded to 2 decimal places) as the shared x-axis. This prevents minor floating-point discrepancies in timestamps from breaking the unified tooltip.
+- **Sparse Data Plotting:** HealthKit metrics (VO, GCT, SL, HR) are recorded asynchronously and at varying frequencies. When aligning multiple metrics into a single DataFrame, NaNs are introduced. **ALWAYS** use `connectgaps=True` in Plotly Scatter traces to ensure lines are visible; otherwise, the chart will appear empty or contain only disjointed points.
+
+## Tech Stack Enforcement
+- Primary: Python 3.x, Streamlit, Pandas, Plotly.
+- Data Pipeline: XML-to-CSV transformation using `lxml` or `ElementTree`.
+- Scaling: Optimize XML parsing for large `export.xml` files (often >1GB). Use streaming or iterative parsing where possible.
+
+## Reference Materials
+- `AGENTS.md`: Technical constitution.
+- `doc/PRD.md`: Feature requirements and goals.
+- `Reference-Folder/`: Deep-dive technical roadmaps for running metrics and algorithms.

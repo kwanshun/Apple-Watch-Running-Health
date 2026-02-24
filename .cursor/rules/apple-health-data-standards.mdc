@@ -1,0 +1,81 @@
+# Apple Health Data Standards
+
+Guidelines for parsing and transforming Apple Health XML data to ensure accuracy and prevent data loss.
+
+## XML Parsing Strategy
+
+### 1. Parsing Order (Critical)
+Always map category-based values (e.g., Sleep Analysis, Stand Hour) to their integer equivalents **BEFORE** converting the column to numeric. Numeric conversion on raw XML strings will turn category identifiers into `NaN`.
+
+```python
+# ✅ CORRECT
+df.loc[mask, 'value'] = df.loc[mask, 'value'].replace(mapping)
+df.loc[mask, 'value'] = pd.to_numeric(df.loc[mask, 'value'], errors='coerce')
+
+# ❌ INCORRECT
+df.loc[mask, 'value'] = pd.to_numeric(df.loc[mask, 'value'], errors='coerce')
+df.loc[mask, 'value'] = df.loc[mask, 'value'].replace(mapping) # Too late! Data is already NaN
+```
+
+### 2. Robust Mapping
+Use comprehensive mapping dictionaries that handle both the full `HKCategoryValue...` strings and potentially shorter versions or existing integers.
+
+```python
+SLEEP_MAP = {
+    'HKCategoryValueSleepAnalysisInBed': 0,
+    'HKCategoryValueSleepAnalysisAsleep': 1,
+    'HKCategoryValueSleepAnalysisAwake': 2,
+    'HKCategoryValueSleepAnalysisAsleepCore': 3,
+    'HKCategoryValueSleepAnalysisAsleepDeep': 4,
+    'HKCategoryValueSleepAnalysisAsleepREM': 5,
+    'InBed': 0, 'Asleep': 1, 'Awake': 2, 'Core': 3, 'Deep': 4, 'REM': 5
+}
+```
+
+## Data Transformation & Aggregation
+
+### 1. Pivot Table Column Safety
+Pivot tables can generate column headers of mixed types (e.g., `1` as `int`, `1.0` as `float`, or `"1"` as `str`). Always use a robust renaming map that handles these variations.
+
+```python
+rename_map = {
+    0: 'sleep_in_bed', 0.0: 'sleep_in_bed', '0': 'sleep_in_bed',
+    1: 'sleep_asleep', 1.0: 'sleep_asleep', '1': 'sleep_asleep'
+}
+df = df.rename(columns=rename_map)
+```
+
+### 2. Initializing Expected Columns
+Before performing calculations on aggregated data (like `total_sleep`), ensure all expected columns exist.
+
+```python
+expected_cols = ['sleep_asleep', 'sleep_core', 'sleep_deep', 'sleep_rem']
+for col in expected_cols:
+    if col not in df.columns:
+        df[col] = 0.0
+```
+
+### 3. Suppressing Downcasting Warnings
+When using `fillna` or `replace` in modern Pandas, explicitly call `infer_objects(copy=False)` or set `pd.set_option('future.no_silent_downcasting', True)` to avoid `FutureWarning` spam and ensure consistent behavior.
+
+## Timezone Alignment & Merging
+
+### 1. Consistent Timezone Awareness (Critical)
+When merging asynchronous data streams (e.g., XML dynamics vs. GPX route) using `pd.merge_asof`, both DataFrames must use the exact same timezone-aware type. Always force conversion to UTC to prevent `MergeError`.
+
+```python
+# ✅ CORRECT
+df1.index = pd.to_datetime(df1.index, utc=True)
+df2.index = pd.to_datetime(df2.index, utc=True)
+merged = pd.merge_asof(df1, df2, left_index=True, right_index=True, direction='nearest')
+```
+
+### 2. Unified Hover Alignment
+For Plotly `hovermode="x unified"` across subplots, ensure the x-axis values are identical across all traces. Minor floating-point differences in absolute timestamps often prevent the hover box from appearing. Use rounded relative time as the shared axis.
+
+```python
+# ✅ CORRECT
+start_time = df.index.min()
+df['rel_min'] = ((df.index - start_time).total_seconds() / 60.0).round(2)
+# Use 'rel_min' as x for all traces in the subplot
+```

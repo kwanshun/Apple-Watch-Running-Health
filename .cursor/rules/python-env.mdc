@@ -1,0 +1,38 @@
+---
+description: Standards for Python virtual environments and package management.
+globs: **/*.py, requirements.txt, pyproject.toml
+alwaysApply: true
+---
+
+# Python Environment Standards
+
+To ensure consistency and avoid conflicts, follow these standards for Python development:
+
+## Virtual Environment
+- **Always verify** that the virtual environment (`.venv`) is active before running Python scripts or installing packages.
+- If no virtual environment is found, suggest creating one using `python -m venv .venv`.
+
+## Package Management
+- **Prefer `python -m pip`** over just `pip` to ensure the correct environment's pip is used.
+- **Do not install packages globally.** Always install within the active virtual environment.
+- When installing new dependencies, remember to update `requirements.txt`.
+
+## Usage Examples
+
+### Installing a package
+```bash
+# ✅ GOOD
+python -m pip install pandas
+
+# ❌ BAD
+pip install pandas
+```
+
+### Running a script
+```bash
+# ✅ GOOD (within active .venv)
+python main.py
+
+# ❌ BAD (outside .venv or using global python)
+/usr/bin/python3 main.py
+```

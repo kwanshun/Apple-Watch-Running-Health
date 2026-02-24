@@ -1,0 +1,8 @@
+streamlit
+pandas
+plotly
+lxml
+numpy
+supabase
+python-dotenv
+statsmodels

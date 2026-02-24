@@ -1,0 +1,64 @@
+---
+description: Guidelines for using the Google GenAI Python SDK (google-genai) based on 2025 standards.
+globs: **/*.py
+alwaysApply: false
+---
+
+# Google GenAI Python SDK Guidelines
+
+Always use the **Google GenAI SDK** (`google-genai`) for all Gemini API requests. Do not use legacy libraries like `google-generativeai`.
+
+## Installation & Imports
+
+- Package: `google-genai`
+- Import: `from google import genai`
+- **❌ DO NOT USE:** `import google.generativeai`
+
+## Initialization
+
+```python
+from google import genai
+
+# Implicitly uses GEMINI_API_KEY env variable
+client = genai.Client()
+```
+
+## Model Selection
+
+- **Default/General:** `gemini-3-flash-preview`
+- **Coding/Reasoning:** `gemini-3-pro-preview`
+- **❌ PROHIBITED:** `gemini-1.5-flash`, `gemini-1.5-pro`, `gemini-pro`
+
+## Usage Examples
+
+### Text Generation
+```python
+response = client.models.generate_content(
+    model='gemini-3-flash-preview',
+    contents='Explain quantum physics.',
+)
+print(response.text)
+```
+
+### Thinking (Reasoning)
+Supported for Gemini 3 series via `thinking_level`.
+
+```python
+from google.genai import types
+
+# Example of thinking config
+response = client.models.generate_content(
+    model='gemini-3-pro-preview',
+    contents='Solve this complex math problem...',
+    config=types.GenerateContentConfig(
+        thinking_config=types.ThinkingConfig(
+            thinking_level=types.ThinkingLevel.HIGH
+        )
+    )
+)
+```
+
+## Golden Rules
+1. Never hardcode API keys.
+2. Use `client.models.generate_content` instead of legacy `model.generate_content`.
+3. Prefer Pydantic models for structured outputs.

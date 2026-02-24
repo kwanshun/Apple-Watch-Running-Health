@@ -1,0 +1,34 @@
+---
+description: Rules for Streamlit Multi-page Navigation to avoid URL pathname conflicts
+globs: **/*.py
+alwaysApply: false
+---
+
+# Streamlit st.Page Rules
+
+## The Problem
+When using `st.navigation` with `st.Page`, Streamlit generates a URL path based on the function's `__name__`. 
+If you use a `lambda` to pass arguments, the name defaults to `<lambda>` for every page, causing a `StreamlitAPIException`.
+
+## Mandatory Rules
+- **NEVER** use a `lambda` inside `st.Page()` without providing an explicit `url_path`.
+- **PREFER** accessing `st.session_state` directly inside the page function instead of passing arguments via `lambda`.
+
+## Correct Examples
+
+### Option A: Using url_path (Use this if you must use lambdas)
+```python
+# GOOD
+st.Page(lambda: my_func(data), title="My Page", url_path="my-unique-path")
+```
+
+### Option B: Session State Access (Best)
+```python
+# Inside show_analysis_page.py
+def show_analysis_page():
+    data = st.session_state.get('data')
+    # ... logic ...
+
+# In main.py
+st.Page(show_analysis_page, title="Analysis")
+```

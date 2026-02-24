@@ -1,0 +1,72 @@
+---
+description: Enforces noise filtering (first/last 2 mins) for single workout time-series or distance-series graphs.
+globs: ui/**/*.py
+alwaysApply: true
+---
+
+# Time-Series Noise Filtering Standards
+
+To ensure data quality in workout visualizations, implement a toggle to filter out noise from the start and end of a session.
+
+## Core Requirements
+
+1. **Toggle Control**:
+   - Provide an `st.toggle("Filter Start/End Noise", value=False)` to allow users to remove noise.
+   - The default state MUST be `False` (Off).
+
+2. **Filtering Logic (when toggle is ON)**:
+   - Filter out the **first 2 minutes** and the **last 2 minutes** of the dataset.
+   - For distance-series, determine the time equivalent or use a fixed distance buffer if appropriate, but time-based (2 min) is the default requirement.
+   - **Important**: Average calculations (e.g., Average Heart Rate, Average Pace) MUST be recalculated to exclude these noise periods.
+
+3. **Visualization Constraints**:
+   - The **x-axis range MUST remain unchanged**. If the workout is 60 minutes, the x-axis must still show 0 to 60.
+    - The graph line/curve should be **empty (null/gap)** during the first 2 and last 2 minutes.
+    - **CRITICAL**: Use `connectgaps=True` in Plotly traces. HealthKit dynamics (VO, GCT, SL) are recorded at different frequencies. Setting `connectgaps=False` (default) will result in invisible or "dotted" lines because most points are separated by NaNs.
+   - Do NOT crop the x-axis to the filtered range.
+
+## Implementation Pattern
+
+```python
+import streamlit as st
+import pandas as pd
+import plotly.graph_objects as go
+
+def plot_workout_metric(df, metric_col):
+    # 1. Add the mandatory toggle
+    filter_noise = st.toggle("Filter Start/End Noise", value=False)
+    
+    plot_df = df.copy()
+    max_time = plot_df['rel_min'].max()
+    
+    if filter_noise:
+        # 2. Mask data for the first/last 2 mins
+        mask = (plot_df['rel_min'] > 2) & (plot_df['rel_min'] < (max_time - 2))
+        
+        # Calculate filtered average
+        avg_val = plot_df.loc[mask, metric_col].mean()
+        
+        # Nullify data outside the mask for plotting (keeps x-axis points)
+        plot_df.loc[~mask, metric_col] = None
+    else:
+        avg_val = plot_df[metric_col].mean()
+
+    # 3. Plot with full x-axis range
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=plot_df['rel_min'], 
+        y=plot_df[metric_col],
+        name=metric_col,
+        connectgaps=True # IMPORTANT: Always set to True for sparse HealthKit data
+    ))
+    
+    # Ensure x-axis range is preserved
+    fig.update_xaxes(range=[0, max_time])
+    
+    st.plotly_chart(fig)
+    st.metric(f"Average {metric_col}", f"{avg_val:.2f}")
+```
+
+## When to Apply
+- ONLY apply to single workout deep-dive analysis (e.g., charts showing data for one specific run).
+- Do NOT apply to long-term trend charts or multi-workout aggregations.
